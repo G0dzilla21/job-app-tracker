@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Index</title>
+</head>
+<body>
+    {% include 'navbar.html' %}  {# Include the navigation bar #}
+    <h1>Sample Data from RDS Database</h1>
+    <ul>
+        {% for row in data %}
+            <li>{{ row }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
