@@ -1,0 +1,15 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis</title>
+</head>
+<body>
+    {% include 'navbar.html' %}
+    {% if roles %}
+    <iframe title="Applications_Analysis" width="1140" height="541.25" src="https://app.powerbi.com/reportEmbed?reportId=fa7f26f6-245e-4167-afa1-f9c334eed352&autoAuth=true&ctid=4fb1ccec-4c9f-4be6-8cc9-513c2ac2ad69" frameborder="0" allowFullScreen="true"></iframe>
+    {% else %}
+        You must be an admin to view the application analysis.
+    {% endif %}
+</body>
+</html>

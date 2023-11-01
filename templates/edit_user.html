@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit User</title>
+    <!-- Include Bootstrap CSS (already included in your base template) -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    {% include 'navbar.html' %}
+    <div class="container">
+        <h1>Edit User</h1>
+        <form method="POST">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" class="form-control" id="username" name="username" value="{{ user[1] }}">
+            </div>
+            <div class="form-group">
+                <label for="role">Role</label>
+                <select class="form-control" id="role" name="new_role"> <!-- Change 'role' to 'new_role' -->
+                    <option value="user" {% if user[2] == 'user' %}selected{% endif %}>User</option>
+                    <option value="moderator" {% if user[2] == 'moderator' %}selected{% endif %}>Moderator</option>
+                    <option value="admin" {% if user[2] == 'admin' %}selected{% endif %}>Admin</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Save</button>
+        </form>
+    </div>
+</body>
+</html>

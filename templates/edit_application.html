@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Application</title>
+    <!-- Include Bootstrap CSS (already included in your base template) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
+</head>
+<body>
+    {% include 'navbar.html' %}
+    <div class="container mt-4">
+        <div class="card">
+            <div class="card-body">
+                <h1 class="card-title">Edit Application ID: {{ application_id }}</h1>
+                <form method="POST">
+                    <div class="form-group">
+                        <label for="company">Company</label>
+                        <input type="text" class="form-control" name="company" id="company" value="{{ application[2] }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="position">Position</label>
+                        <input type="text" class="form-control" name="position" id="position" value="{{ application[3] }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="application_date">Application Date</label>
+                        <input type="text" class="form-control" name="application_date" id="application_date" value="{{ application[4] }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="location">Location</label>
+                        <input type="text" class="form-control" name="location" id="location" value="{{ application[6] }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="link">Link</label>
+                        <input type="text" class="form-control" name="link" id="link" value="{{ application[7] }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="feedback">Feedback</label>
+                        <input type="text" class="form-control" name="feedback" id="feedback" value="{{ application[8] }}" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Update</button>
+                    <a class="btn btn-secondary" href="{{ url_for('applications') }}">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+    <script>
+        // Initialize the date picker
+        $('#application_date').datepicker({
+            format: 'yyyy-mm-dd',
+            autoclose: true,
+            todayHighlight: true
+        });
+    </script>
+    
+</body>
+</html>

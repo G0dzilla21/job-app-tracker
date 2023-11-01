@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manage User Roles</title>
+    <!-- Include Bootstrap CSS (already included in your base template) -->
+</head>
+<body>
+    {% include 'navbar.html' %}
+    <div class="container">
+        <h1>Manage User Roles</h1>
+        <form method="POST">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Current Role</th>
+                        <th>New Role</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user[1] }}</td>
+                        <td>{{ user[2] }}</td>
+                        <td>
+                            <select name="new_role" class="form-control">
+                                <option value="user" {% if user[2] == 'user' %}selected{% endif %}>User</option>
+                                <option value="moderator" {% if user[2] == 'moderator' %}selected{% endif %}>Moderator</option>
+                                <option value="admin" {% if user[2] == 'admin' %}selected{% endif %}>Admin</option>
+                            </select>
+                        </td>
+                        <td>
+                            <input type="hidden" name="user_id" value="{{ user[0] }}">
+                            <button type="submit" class="btn btn-primary">Update Role</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </form>
+    </div>
+</body>
+</html>

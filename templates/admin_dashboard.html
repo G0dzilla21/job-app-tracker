@@ -9,6 +9,7 @@
     {% include 'navbar.html' %}  {# Include the navigation bar #}
             <br>
             {% if current_user.is_authenticated %}
+                {% if roles %}
                 <div class="container mt-5">
                     <div class="row justify-content-center">
                         <div class="col-md-6">
@@ -17,13 +18,17 @@
                                     <h1 class="text-center">User Dashboard</h1>
                                 </div>
                                 <div class="card-body">
-                                    <a href="/upload" class="btn btn-primary btn-block">Upload File</a>
-                                    <a href="/applications" class="btn btn-primary btn-block">Applications</a>
+                                    <a href="/analysis" class="btn btn-primary btn-block">Applications Analysis</a>
+                                    <a href="/manage_users" class="btn btn-primary btn-block">Manage Users</a>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+                {% else %}
+
+                <p>You must be an admin to view the administrator dashboard.</p>
+                {% endif %}
             {% else %}
                 To view your dashboard, please <a href="/login">login</a> or <a href="/register">register</a>.
             {% endif %}

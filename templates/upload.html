@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <title>Upload File</title>
+</head>
+<body>
+    {% include 'navbar.html' %}  {# Include the navigation bar #}
+            <br>
+            {% if current_user.is_authenticated %}
+            
+                <div class="container mt-5">
+                    
+                    <div class="row justify-content-center">
+                        
+                        <div class="col-md-6">
+                            
+                            <a href='dashboard'>Back to Dashboard</a>
+                            <p></p>
+                            <div class="card">
+                                <div class="card-header">
+                                    <h1 class="text-center">Upload to Dashboard</h1>
+                                </div>
+                                <div class="card-body">
+                                    <form method="POST" action="/upload" enctype="multipart/form-data">
+                                        <div class="form-group">
+                                            <label for="file">Upload Excel File:</label>
+                                            <input type="file" name="file" class="form-control-file" accept=".xlsx, .xls">
+                                        </div>
+                                        <button type="submit" class="btn btn-primary btn-block", data-toggle="modal" data-target="#uploadSuccessModal">Upload File</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                To start uploading, please <a href="/login">login</a> or <a href="/register">register</a>.
+            {% endif %}
+            <!-- Button to trigger the modal -->
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#uploadSuccessModal" style="display: none;"></button>
+
+            <!-- Modal for upload success message -->
+            <div class="modal fade" id="uploadSuccessModal" tabindex="-1" role="dialog" aria-labelledby="uploadSuccessModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="uploadSuccessModalLabel">Upload Success</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            File successfully uploaded!
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <script>
+                {% if upload_success %}
+                // Trigger the Bootstrap modal when upload_success is true
+                $('#uploadSuccessModal').modal('show');
+                {% endif %}
+            </script>          
+</body>
+</html>
