@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create a New Application</title>
+    <!-- Include Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    {% include 'navbar.html' %}
+    <div class="container">
+        <p></p>
+        <a href='applications'>Back to Applications</a>
+        <h1>Create a New Application</h1>
+
+        <!-- Create a form for adding a new application -->
+        <form method="POST" action="/create_application">
+            <div class="form-group">
+                <label for="company">Company</label>
+                <input type="text" class="form-control" id="company" name="company" required>
+            </div>
+            <div class="form-group">
+                <label for="position">Position</label>
+                <input type="text" class="form-control" id="position" name="position" required>
+            </div>
+            <div class="form-group">
+                <label for="application_date">Application Date</label>
+                <input type="text" class="form-control" id="application_date" name="application_date" required>
+            </div>
+            <div class="form-group">
+                <label for="location">Location</label>
+                <input type="text" class="form-control" id="location" name="location" required>
+            </div>
+            <div class="form-group">
+                <label for="link">Link</label>
+                <input type="text" class="form-control" id="link" name="link">
+            </div>
+            <div class="form-group">
+                <label for="feedback">Feedback</label>
+                <select class="form-control" id="feedback" name="feedback" required>
+                    <option value="Interview Scheduled">Interview Scheduled</option>
+                    <option value="Rejected">Rejected</option>
+                    <option value="No Response">No Response</option>
+                    <!-- Add more feedback options as needed -->
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Create Application</button>
+        </form>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+    <script>
+        // Initialize the date picker
+        $('#application_date').datepicker({
+            format: 'yyyy-mm-dd',
+            autoclose: true,
+            todayHighlight: true
+        });
+    </script>
+    <!-- Include Bootstrap JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+</body>
+</html>

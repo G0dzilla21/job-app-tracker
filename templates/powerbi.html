@@ -9,15 +9,13 @@
     {% include 'navbar.html' %}
     <div class="container">
     <br>
-        <a href='admin_dashboard'>Back to Admin Dashboard</a>
+        <a href='analysis'>Back to Applications Analysis</a>
     <br>
     <h1>Applications Analysis</h1>
     {% if current_user.UserRole == 'admin' %}
     <div class="card">
         <div class="card-body">
-            <a href="powerbi">PowerBI Dashboard</a>
-            <p></p>
-            <a href="d3js">D3.js Dashboard (Real-Time Analysis)</a>
+            <iframe title="Applications_Analysis" width="1070" height="550" src="https://app.powerbi.com/reportEmbed?reportId=fa7f26f6-245e-4167-afa1-f9c334eed352&autoAuth=true&ctid=4fb1ccec-4c9f-4be6-8cc9-513c2ac2ad69" frameborder="0" allowFullScreen="true"></iframe>
         </div>
     </div>
     {% else %}

@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 import mysql.connector
@@ -73,27 +74,7 @@ def admin_required(f):
     return decorated_function
 
 @app.route('/')
-def index():
-    if current_user.is_authenticated:
-        user_id = current_user.id
-
-        # Query the database to retrieve roles
-        try:
-            conn = get_db_connection()
-            cursor = conn.cursor()
-
-            # Replace 'your_table' with the actual table name where applications are stored
-            cursor.execute("SELECT * FROM UserAccount WHERE UserID = %s AND UserRole = 'admin'", (user_id,))
-            roles = cursor.fetchall()
-            print(roles)
-            # Close the cursor and connection
-            cursor.close()
-            conn.close()
-
-            return render_template('index.html', roles=roles) 
-        
-        except Exception as e:
-            return "Error: " + str(e)
+def index():       
     return render_template('index.html')
     
 
@@ -229,26 +210,7 @@ def upload():
 @login_required
 @admin_required
 def admin_dashboard():
-    user_id = current_user.id
-
-    # Query the database to retrieve roles
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-
-        # Replace 'your_table' with the actual table name where applications are stored
-        cursor.execute("SELECT * FROM UserAccount WHERE UserID = %s AND UserRole = 'admin'", (user_id,))
-        roles = cursor.fetchall()
-        print(roles)
-        # Close the cursor and connection
-        cursor.close()
-        conn.close()
-
-        return render_template('admin_dashboard.html', roles=roles)
-
-    except Exception as e:
-        return "Error: " + str(e)
-    
+    return render_template('admin_dashboard.html')  
 
 @app.route('/applications')
 @login_required
@@ -273,6 +235,53 @@ def applications():
 
     except Exception as e:
         return "Error: " + str(e)
+    
+@app.route('/new_application', methods=['GET'])
+@login_required
+def new_application():
+    return render_template('new_application.html')
+
+    
+@app.route('/create_application', methods=['POST'])
+@login_required
+def create_application():
+    if request.method == 'POST':
+        company = request.form.get('company')
+        position = request.form.get('position')
+        application_date = request.form.get('application_date')
+        location = request.form.get('location')
+        link = request.form.get('link')
+        feedback = request.form.get('feedback')
+
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+
+            # Prepare the SQL query to insert the new application data, including DateAdded
+            insert_query = """
+                INSERT INTO Applications (UserID, Company, Position, ApplicationDate, Location, Link, Feedback, DateAdded)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, NOW())  # Use NOW() to get the current date and time
+            """
+            user_id = current_user.id  # Get the current user's ID
+            data = (user_id, company, position, application_date, location, link, feedback)
+
+            # Execute the query with the data
+            cursor.execute(insert_query, data)
+            conn.commit()
+
+            flash('New application created successfully', 'success')
+            return redirect('/applications')
+
+        except mysql.connector.Error as e:
+            flash('Error: ' + str(e), 'danger')
+
+        finally:
+            cursor.close()
+            conn.close()
+
+    else:
+        flash('Invalid request', 'danger')
+        return redirect('/new_application')
     
 
 @app.route('/edit_application/<int:application_id>', methods=['GET', 'POST'])
@@ -354,23 +363,34 @@ def delete_application(application_id):
 @login_required
 @admin_required
 def analysis():
-    user_id = current_user.id
 
-    # Query the database to retrieve roles
+    return render_template('analysis.html') 
+
+@app.route('/powerbi')
+@login_required
+@admin_required
+def powerbi():
+    
+    return render_template('powerbi.html') 
+
+@app.route('/d3js')
+@login_required
+@admin_required
+def d3js():
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
 
         # Replace 'your_table' with the actual table name where applications are stored
-        cursor.execute("SELECT * FROM UserAccount WHERE UserID = %s AND UserRole = 'admin'", (user_id,))
-        roles = cursor.fetchall()
-        print(roles)
+        cursor.execute("SELECT ApplicationDate, COUNT(*) as Count FROM Applications GROUP BY ApplicationDate")
+        application_counts = cursor.fetchall()
+        print(application_counts)
         # Close the cursor and connection
         cursor.close()
         conn.close()
 
-        return render_template('analysis.html', roles=roles) 
-    
+        return render_template('d3js.html', application_counts=application_counts)
+
     except Exception as e:
         return "Error: " + str(e)
 

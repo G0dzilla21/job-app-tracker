@@ -9,7 +9,7 @@
     {% include 'navbar.html' %}  {# Include the navigation bar #}
             <br>
             {% if current_user.is_authenticated %}
-                {% if roles %}
+                {% if current_user.UserRole == 'admin' %}
                 <div class="container mt-5">
                     <div class="row justify-content-center">
                         <div class="col-md-6">

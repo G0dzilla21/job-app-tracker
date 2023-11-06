@@ -24,13 +24,15 @@
             <img src="/static/home_banner.jpg" alt="Banner Image" style="width: 100%; max-width: 760px; max-height: 760px; display: block; margin: 0 auto;">
             
             <br>
+            Welcome Administrator!
             <p>
                 Here you can track your job applications and keep notes on your progress. You will also be able to view real-time analytics.
             </p>
             {% if current_user.is_authenticated %}
-                {% if roles %}
+                {% if current_user.UserRole == 'admin' %}
                 <p>
-                    Welcome Administrator! 
+                    
+                     To get started, check out your personal
                     <a href="/dashboard" class="btn btn-primary">Dashboard</a> or the <a href="/admin_dashboard" class="btn btn-primary">Admin Dashboard</a>
                 </p>
                 {% else %}

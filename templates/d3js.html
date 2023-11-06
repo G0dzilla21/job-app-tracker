@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- Include D3.js -->
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+</head>
+<body>
+    {% include 'navbar.html' %}
+    <div class="container">
+        <br>
+        <a href='analysis'>Back to Applications Analysis</a>
+        <br>
+        <h1>Top 3 Dates with Most Applications</h1>
+        <div class="card">
+            <div class="card-body">
+                <div id="chart"></div>
+            </div>
+        </div>
+    </div>
+        <script>
+            var application_counts = {{ application_counts|tojson }};
+        </script>
+        <script>
+
+            // Extract the top 3 dates and counts and sort in descending order
+            const topDates = application_counts.slice(0, 3).map(d => {
+                const date = new Date(d[0]);
+                date.setDate(date.getDate() + 1); // Add one day
+                return [date, d[1]];
+            }).sort((a, b) => b[1] - a[1]); // Sort in descending order by counts
+
+            // Create an SVG container for the chart
+            const svg = d3.select("#chart")
+                .append("svg")
+                .attr("width", 1100)
+                .attr("height", 400);
+
+            // Set the margins and dimensions for the chart area
+            const margin = { top: 20, right: 30, bottom: 30, left: 40 };
+            const width = +svg.attr("width") - margin.left - margin.right;
+            const height = +svg.attr("height") - margin.top - margin.bottom;
+
+            // Create a g element for the chart and translate it to the proper position
+            const g = svg.append("g")
+                .attr("transform", `translate(${margin.left},${margin.top})`);
+
+            // Extract the dates and counts from the data
+            const dates = topDates.map(d => d[0]);
+            const counts = topDates.map(d => d[1]);
+
+            // Define the scales for x and y
+            const x = d3.scaleBand()
+                .domain(dates.map(d => d.toDateString()))
+                .range([0, width])
+                .padding(0.1);
+            const y = d3.scaleLinear()
+                .domain([0, d3.max(counts)])
+                .range([height, 0]);
+
+            // Create the bars
+            g.selectAll(".bar")
+                .data(topDates)
+                .enter().append("rect")
+                .attr("class", "bar")
+                .attr("x", d => x(d[0].toDateString()))
+                .attr("y", d => y(d[1]))
+                .attr("width", x.bandwidth())
+                .attr("height", d => height - y(d[1]))
+                .attr("fill", "steelblue");
+
+            // Add x-axis
+            g.append("g")
+                .attr("class", "x-axis")
+                .attr("transform", `translate(0,${height})`)
+                .call(d3.axisBottom(x));
+
+            // Add y-axis
+            g.append("g")
+                .attr("class", "y-axis")
+                .call(d3.axisLeft(y));
+
+        </script>
+    
+</body>
+</html>
