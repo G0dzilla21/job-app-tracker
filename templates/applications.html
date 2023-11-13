@@ -24,6 +24,7 @@
             <thead>
                 <tr>
                     <th>Application ID</th>
+                    <th>Interview ID</th> <!-- New column for Interview ID -->
                     <th>Company</th>
                     <th>Position</th>
                     <th>Application Date</th>
@@ -37,12 +38,13 @@
                 {% for application in applications %}
                 <tr>
                     <td>{{ application[0] }}</td>
-                    <td>{{ application[2] }}</td>
-                    <td>{{ application[3] }}</td>
-                    <td>{{ application[4] }}</td>
-                    <td>{{ application[6] }}</td>
-                    <td>{{ application[7] }}</td>
-                    <td>{{ application[8] }}</td>
+                    <td><a href="/interviews/{{ application[10] }}">{{ application[10] }}</a></td> <!-- New cell for Interview ID -->
+                    <td class="wrap">{{ application[2] }}</td>
+                    <td class="wrap">{{ application[3] }}</td>
+                    <td class="wrap">{{ application[4] }}</td>
+                    <td class="wrap">{{ application[6] }}</td>
+                    <td class="wrap"><a href="{{ application[7] }}" target="_blank">Link</a></td>
+                    <td class="wrap">{{ application[8] }}</td>
                     <td>
                         <button class="btn btn-primary" onclick="editApplication({{ application[0] }})">Edit</button>
                         <button class="btn btn-danger" onclick="deleteApplication({{ application[0] }})">Delete</button>
@@ -70,11 +72,14 @@
             window.location.href = "/edit_application/" + applicationId;
         }
         
-        function deleteApplication(applicationId) {
-            if (confirm("Are you sure you want to delete this application?")) {
+        function deleteApplication(applicationId) {           
                 window.location.href = "/delete_application/" + applicationId;
-            }
         }
     </script>
+    <style>
+        .wrap {
+            word-wrap: break-word;
+        }
+    </style>
 </body>
 </html>

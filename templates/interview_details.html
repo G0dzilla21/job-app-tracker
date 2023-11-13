@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Interview Details</title>
+    <!-- Include Bootstrap CSS if needed -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    {% include 'navbar.html' %}
+    <div class="container">
+        <h1>Interview Details</h1>
+
+        <!-- Display interview details -->
+        <p><strong>Interview ID:</strong> {{ interview[0] }}</p>
+        <p><strong>Application ID:</strong> {{ interview[1] }}</p>
+        <p><strong>Interview Date:</strong> {{ interview[2] }}</p>
+        <p><strong>Performance Notes:</strong> {{ interview[3] }}</p>
+
+
+        <!-- Edit button to navigate to the edit page -->
+        <p><a href="{{ url_for('edit_interview', interview_id=interview[0]) }}" class="btn btn-primary">Edit</a></p>
+
+        <!-- Add more fields as needed -->
+
+        <a href="{{ url_for('applications') }}">Back to Applications</a>
+    </div>
+</body>
+</html>

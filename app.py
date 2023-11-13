@@ -9,6 +9,7 @@ from wtforms import FileField
 from flask_wtf.file import FileRequired
 from dotenv import load_dotenv
 import os
+import pymysql
 import pandas as pd
 import tempfile
 import boto3
@@ -109,6 +110,18 @@ def register():
                 cursor.execute(insert_query, (username, hashed_password, firstname, lastname, email))
                 conn.commit()
 
+                last_user_id = cursor.lastrowid
+                # Use raw SQL with a cursor to either update or insert the privacy settings
+                sql_statement = """
+                    INSERT INTO DataPrivacy (UserID, IsDataPrivate) VALUES (%s, %s)
+                """
+
+                cursor.execute(
+                    sql_statement,
+                    (last_user_id, 0)
+                )
+                conn.commit()
+
                 # Close the cursor and connection
                 cursor.close()
                 conn.close()
@@ -155,6 +168,19 @@ def login():
 
     return render_template('login.html')
 
+
+def insert_application(cursor, user_id, company, position, application_date, location, link, feedback):
+    # Prepare the SQL query to insert the new application data, including DateAdded
+    insert_query = """
+        INSERT INTO Applications (UserID, Company, Position, ApplicationDate, Location, Link, Feedback, DateAdded)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, NOW())
+    """
+    data = (user_id, company, position, application_date, location, link, feedback)
+
+    # Execute the query with the data
+    cursor.execute(insert_query, data)
+    # Return the last inserted application ID
+    return cursor.lastrowid
 
 # Create a class for the file upload form
 class UploadForm(FlaskForm):
@@ -218,15 +244,21 @@ def applications():
     # Retrieve the current user's ID
     user_id = current_user.id
     
-    # Query the database to retrieve applications for the current user
+    # Query the database to retrieve applications and interviews for the current user
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
 
         # Replace 'your_table' with the actual table name where applications are stored
-        cursor.execute("SELECT * FROM Applications WHERE UserID = %s", (user_id,))
+        # Modify it to join the Applications and Interviews tables:
+        cursor.execute("""
+            SELECT Applications.*, Interviews.InterviewID
+            FROM Applications
+            LEFT JOIN Interviews ON Applications.ApplicationID = Interviews.ApplicationID
+            WHERE Applications.UserID = %s
+        """, (user_id,))
         applications = cursor.fetchall()
-        # print(applications)
+
         # Close the cursor and connection
         cursor.close()
         conn.close()
@@ -260,7 +292,7 @@ def create_application():
             # Prepare the SQL query to insert the new application data, including DateAdded
             insert_query = """
                 INSERT INTO Applications (UserID, Company, Position, ApplicationDate, Location, Link, Feedback, DateAdded)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, NOW())  # Use NOW() to get the current date and time
+                VALUES (%s, %s, %s, %s, %s, %s, %s, NOW())
             """
             user_id = current_user.id  # Get the current user's ID
             data = (user_id, company, position, application_date, location, link, feedback)
@@ -269,7 +301,21 @@ def create_application():
             cursor.execute(insert_query, data)
             conn.commit()
 
-            flash('New application created successfully', 'success')
+            # Get the last inserted ApplicationID
+            last_application_id = cursor.lastrowid
+
+            # Prepare the SQL query to insert into the Interviews table
+            insert_interview_query = """
+                INSERT INTO Interviews (ApplicationID)
+                VALUES (%s)
+            """
+            interview_data = (last_application_id,)
+
+            # Execute the query with the data
+            cursor.execute(insert_interview_query, interview_data)
+            conn.commit()
+
+            flash('New application and interview created successfully', 'success')
             return redirect('/applications')
 
         except mysql.connector.Error as e:
@@ -342,9 +388,14 @@ def delete_application(application_id):
             conn = get_db_connection()
             cursor = conn.cursor()
 
-            # Delete the application from the database based on application_id
-            delete_query = "DELETE FROM Applications WHERE ApplicationID = %s"
-            cursor.execute(delete_query, (application_id,))
+            # Delete from Interviews table first
+            delete_interview_query = "DELETE FROM Interviews WHERE ApplicationID = %s"
+            cursor.execute(delete_interview_query, (application_id,))
+            conn.commit()
+
+            # Then delete from Applications table
+            delete_application_query = "DELETE FROM Applications WHERE ApplicationID = %s"
+            cursor.execute(delete_application_query, (application_id,))
             conn.commit()
 
             cursor.close()
@@ -357,7 +408,64 @@ def delete_application(application_id):
             flash('Error: ' + str(e), 'danger')
 
     else:
-        return render_template('delete_application.html', application_id=application_id)   
+        return render_template('delete_application.html', application_id=application_id)
+    
+@app.route('/interviews/<int:interview_id>')
+@login_required
+def view_interview(interview_id):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Fetch interview details using the provided interview_id
+        cursor.execute("SELECT * FROM Interviews WHERE InterviewID = %s", (interview_id,))
+        interview = cursor.fetchone()
+
+        # Close the cursor and connection
+        cursor.close()
+        conn.close()
+
+        # Render the template with interview details
+        return render_template('interview_details.html', interview=interview)
+
+    except Exception as e:
+        return "Error: " + str(e)
+
+@app.route('/edit_interview/<int:interview_id>', methods=['GET', 'POST'])
+@login_required
+def edit_interview(interview_id):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        if request.method == 'POST':
+            # Handle form submission for updating interview details
+            new_interview_date = request.form.get('new_interview_date')
+            new_performance_notes = request.form.get('new_performance_notes')
+
+            # Update the interview details in the database
+            cursor.execute("UPDATE Interviews SET InterviewDate = %s, PerformanceNotes = %s WHERE InterviewID = %s",
+                           (new_interview_date, new_performance_notes, interview_id))
+            conn.commit()
+
+            # Redirect to the interview details page after editing
+            return redirect(url_for('view_interview', interview_id=interview_id))
+
+        else:
+            # Fetch current interview details
+            cursor.execute("SELECT * FROM Interviews WHERE InterviewID = %s", (interview_id,))
+            interview = cursor.fetchone()
+
+            # Render the template with the current interview details
+            return render_template('edit_interview.html', interview=interview)
+
+    except Exception as e:
+        return "Error: " + str(e)
+
+    finally:
+        # Close the cursor and connection
+        cursor.close()
+        conn.close()
 
 @app.route('/analysis')
 @login_required
@@ -463,32 +571,90 @@ def edit_user(user_id):
 @login_required
 @admin_required
 def delete_user(user_id):
-    if current_user.is_authenticated and current_user.UserRole == 'admin':
-        if request.method == 'POST':
-            try:
-                conn = get_db_connection()
-                cursor = conn.cursor()
+    
+    if request.method == 'POST':
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
 
-                # Delete the user from the database based on user_id
-                delete_query = "DELETE FROM UserAccount WHERE UserID = %s"
-                cursor.execute(delete_query, (user_id,))
-                conn.commit()
+            delete_applications_query = "DELETE FROM Applications WHERE UserID = %s"
+            cursor.execute(delete_applications_query, (user_id,))
+            conn.commit()
 
-                cursor.close()
-                conn.close()
+            delete_dataprivacy_query = "DELETE FROM DataPrivacy WHERE UserID = %s"
+            cursor.execute(delete_dataprivacy_query, (user_id,))
+            conn.commit()
 
-                flash('User deleted successfully', 'success')
-                return redirect(url_for('manage_users'))  # Redirect to the user management page
+            # Delete the user from the database based on user_id
+            delete_useraccount_query = "DELETE FROM UserAccount WHERE UserID = %s"
+            cursor.execute(delete_useraccount_query, (user_id,))
+            conn.commit()
 
-            except mysql.connector.Error as e:
-                flash('Error: ' + str(e), 'danger')
+            cursor.close()
+            conn.close()
 
-        else:
-            return render_template('delete_user.html', user_id=user_id)  # Render the confirmation page
+            flash('User deleted successfully', 'success')
+            return redirect(url_for('manage_users'))  # Redirect to the user management page
+
+        except mysql.connector.Error as e:
+            flash('Error: ' + str(e), 'danger')
 
     else:
-        flash('You do not have permission to delete users.', 'danger')
-        return redirect(url_for('manage_users'))  # Redirect back to the user management page
+        return render_template('delete_user.html', user_id=user_id)  # Render the confirmation page
+
+
+@app.route('/privacy_settings', methods=['GET', 'POST'])
+@login_required
+def privacy_settings():
+    if request.method == 'POST':
+        new_privacy_status = bool(int(request.form.get('is_private')))
+        
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+
+            # Use raw SQL with a cursor to either update or insert the privacy settings
+            sql_statement = """
+                INSERT INTO DataPrivacy (UserID, IsDataPrivate) VALUES (%s, %s)
+                ON DUPLICATE KEY UPDATE IsDataPrivate = %s
+            """
+
+            cursor.execute(
+                sql_statement,
+                (current_user.id, new_privacy_status, new_privacy_status)
+            )
+            
+            conn.commit()
+            flash('Privacy settings updated successfully!', 'success')
+
+        except Exception as e:
+            conn.rollback()
+            flash(f'Error updating privacy settings: {str(e)}', 'danger')
+
+        finally:
+            cursor.close()
+            conn.close()
+
+        return redirect(url_for('privacy_settings'))
+
+    # Fetch the current user's privacy settings
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    privacy_settings = None
+
+    try:
+        cursor.execute("SELECT * FROM DataPrivacy WHERE UserID = %s", (current_user.id,))
+        privacy_settings = cursor.fetchone()
+
+    except Exception as e:
+        flash(f'Error fetching privacy settings: {str(e)}', 'danger')
+
+    finally:
+        cursor.close()
+        conn.close()
+
+    return render_template('privacy_settings.html', privacy_settings=privacy_settings)
 
 
 @app.route('/dashboard', methods=['GET', 'POST'])

@@ -1,0 +1,19 @@
+<!-- privacy_settings.html -->
+
+<html>
+  <head>
+    <title>Privacy Settings</title>
+  </head>
+  <body>
+    <h2>Privacy Settings</h2>
+    <form method="POST" action="{{ url_for('privacy_settings') }}">
+      <label for="is_private">Is Data Private?</label>
+      <select name="is_private" id="is_private">
+        <option value="1" {% if privacy_settings and privacy_settings.is_data_private %}selected{% endif %}>Yes</option>
+        <option value="0" {% if privacy_settings and not privacy_settings.is_data_private %}selected{% endif %}>No</option>
+      </select>
+      <button type="submit">Save</button>
+    </form>
+  </body>
+
+</html>
